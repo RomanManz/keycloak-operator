@@ -412,6 +412,7 @@ func (c *Client) update(obj T, resourcePath, resourceName string) error {
 }
 
 func (c *Client) UpdateRealm(realm *v1alpha1.KeycloakRealm) error {
+	logrus.Errorf("============ trying to update realm: %v\n", realm.Spec.Realm)
 	return c.update(realm.Spec.Realm, fmt.Sprintf("realms/%s", realm.Spec.Realm.Realm), "realm")
 }
 

@@ -1,7 +1,13 @@
 package v1alpha1
 
 import (
+	"context"
+	"fmt"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	config2 "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 // KeycloakRealmSpec defines the desired state of KeycloakRealm.
@@ -16,10 +22,19 @@ type KeycloakRealmSpec struct {
 	InstanceSelector *metav1.LabelSelector `json:"instanceSelector,omitempty"`
 	// Keycloak Realm REST object.
 	// +kubebuilder:validation:Required
-	Realm *KeycloakAPIRealm `json:"realm"`
+	// UserFederationProviders secrets
+	// +kubebuilder:validation:Optional
+	UserFederationProvidersSecrets []*UserFederationProvidersSecret `json:"userFederationProvidersSecrets"`
+	Realm                          *KeycloakAPIRealm                `json:"realm"`
 	// A list of overrides to the default Realm behavior.
 	// +listType=atomic
 	RealmOverrides []*RedirectorIdentityProviderOverride `json:"realmOverrides,omitempty"`
+}
+
+type UserFederationProvidersSecret struct {
+	// +kubebuilder:validation:Required
+	DisplayName string `json:"displayName"`
+	SecretName  string `json:"secretName"`
 }
 
 type KeycloakAPIRealm struct {
@@ -577,4 +592,44 @@ func init() {
 
 func (i *KeycloakRealm) UpdateStatusSecondaryResources(kind string, resourceName string) {
 	i.Status.SecondaryResources = UpdateStatusSecondaryResources(i.Status.SecondaryResources, kind, resourceName)
+}
+
+func (i *KeycloakRealmSpec) CheckUserFederationProviderSecret(kc Keycloak) error {
+outer:
+	for _, ufps := range i.UserFederationProvidersSecrets {
+		s, err := getSecretKey(ufps.SecretName, "bindCredentials", kc)
+		if err != nil {
+			return errors.Wrapf(err, "error retrieving bindCredentials from secret %s", ufps.SecretName)
+		}
+		for _, p := range i.Realm.UserFederationProviders {
+			if p.DisplayName == ufps.DisplayName {
+				p.Config["bindCredentials"] = s
+				continue outer
+			}
+		}
+		return errors.New(fmt.Sprintf("No UserFederationProvider %s found", ufps.DisplayName))
+	}
+	return nil
+}
+
+func getSecretKey(s, k string, kc Keycloak) (string, error) {
+	config, err := config2.GetConfig()
+	if err != nil {
+		return "", err
+	}
+
+	secretClient, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return "", err
+	}
+
+	creds, err := secretClient.CoreV1().Secrets(kc.Namespace).Get(context.TODO(), s, v12.GetOptions{})
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("failed to get the %s credentials from secret %2", k, s))
+	}
+	v := string(creds.Data[k])
+	if v == "" {
+		return "", errors.New(fmt.Sprintf("empty value for %s from secret %2", k, s))
+	}
+	return v, nil
 }

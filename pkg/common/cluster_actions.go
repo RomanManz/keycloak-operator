@@ -24,7 +24,7 @@ type ActionRunner interface {
 	RunAll(desiredState DesiredClusterState) error
 	Create(obj runtime.Object) error
 	Update(obj runtime.Object) error
-	CreateRealm(obj *v1alpha1.KeycloakRealm) error
+	CreateRealm(obj *v1alpha1.KeycloakRealm, kc v1alpha1.Keycloak) error
 	DeleteRealm(obj *v1alpha1.KeycloakRealm) error
 	UpdateRealm(obj *v1alpha1.KeycloakRealm) error
 	CreateClient(keycloakClient *v1alpha1.KeycloakClient, Realm string) error
@@ -118,13 +118,16 @@ func (i *ClusterActionRunner) Update(obj runtime.Object) error {
 }
 
 // Create a new realm using the keycloak api
-func (i *ClusterActionRunner) CreateRealm(obj *v1alpha1.KeycloakRealm) error {
+func (i *ClusterActionRunner) CreateRealm(obj *v1alpha1.KeycloakRealm, kc v1alpha1.Keycloak) error {
 	if i.keycloakClient == nil {
 		return errors.Errorf("cannot perform realm create when client is nil")
 	}
-
-	_, err := i.keycloakClient.CreateRealm(obj)
-	return err
+	if err := obj.Spec.CheckUserFederationProviderSecret(kc); err != nil {
+		return err
+	} else {
+		_, err := i.keycloakClient.CreateRealm(obj)
+		return err
+	}
 }
 
 // Update a realm using the keycloak api
@@ -373,8 +376,9 @@ type GenericUpdateAction struct {
 }
 
 type CreateRealmAction struct {
-	Ref *v1alpha1.KeycloakRealm
-	Msg string
+	Ref      *v1alpha1.KeycloakRealm
+	Msg      string
+	Keycloak v1alpha1.Keycloak
 }
 
 type CreateClientAction struct {
@@ -521,7 +525,7 @@ func (i GenericUpdateAction) Run(runner ActionRunner) (string, error) {
 }
 
 func (i CreateRealmAction) Run(runner ActionRunner) (string, error) {
-	return i.Msg, runner.CreateRealm(i.Ref)
+	return i.Msg, runner.CreateRealm(i.Ref, i.Keycloak)
 }
 
 func (i UpdateRealmAction) Run(runner ActionRunner) (string, error) {
