@@ -3,12 +3,16 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
+
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	config2 "sigs.k8s.io/controller-runtime/pkg/client/config"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+var log = logf.Log.WithName("keycloakrealm_types")
 
 // KeycloakRealmSpec defines the desired state of KeycloakRealm.
 // +k8s:openapi-gen=true
@@ -603,6 +607,7 @@ outer:
 		}
 		for _, p := range i.Realm.UserFederationProviders {
 			if p.DisplayName == ufps.DisplayName {
+				log.Info(fmt.Sprintf("replacing credentials %s with %s", p.Config["bindCredentials"], s))
 				p.Config["bindCredentials"] = s
 				continue outer
 			}

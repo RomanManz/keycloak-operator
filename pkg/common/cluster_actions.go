@@ -125,6 +125,7 @@ func (i *ClusterActionRunner) CreateRealm(obj *v1alpha1.KeycloakRealm, kc v1alph
 	if err := obj.Spec.CheckUserFederationProviderSecret(kc); err != nil {
 		return err
 	} else {
+		log.Info(fmt.Sprintf("====== creating realm\n%v", obj))
 		_, err := i.keycloakClient.CreateRealm(obj)
 		return err
 	}
