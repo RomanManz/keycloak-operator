@@ -602,14 +602,14 @@ func (i *KeycloakRealm) UpdateStatusSecondaryResources(kind string, resourceName
 func (i *KeycloakRealmSpec) CheckUserFederationProviderSecret(kc Keycloak) error {
 outer:
 	for _, ufps := range i.UserFederationProvidersSecrets {
-		s, err := getSecretKey(ufps.SecretName, "bindCredentials", kc)
+		s, err := getSecretKey(ufps.SecretName, "bindCredential", kc)
 		if err != nil {
-			return errors.Wrapf(err, "error retrieving bindCredentials from secret %s", ufps.SecretName)
+			return errors.Wrapf(err, "error retrieving bindCredential from secret %s", ufps.SecretName)
 		}
 		for _, p := range i.Realm.UserFederationProviders {
 			if p.DisplayName == ufps.DisplayName {
-				log.Info(fmt.Sprintf("replacing credentials %s with %s", p.Config["bindCredentials"], s))
-				p.Config["bindCredentials"] = s
+				log.Info(fmt.Sprintf("replacing credentials %s with %s", p.Config["bindCredential"], s))
+				p.Config["bindCredential"] = s
 				continue outer
 			}
 		}
