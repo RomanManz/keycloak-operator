@@ -75,7 +75,6 @@ spec:
                   type: object
               type: object
             realm:
-              description: Keycloak Realm REST object.
               properties:
                 accountTheme:
                   description: Account Theme
@@ -827,6 +826,20 @@ spec:
                 unmanaged and not be managed by this operator. It can then be used
                 for targeting purposes.
               type: boolean
+            userFederationProvidersSecrets:
+              description: Keycloak Realm REST object. UserFederationProviders secrets
+              items:
+                properties:
+                  displayName:
+                    type: string
+                  secretName:
+                    type: string
+                required:
+                - displayName
+                - secretName
+                type: object
+              type: array
+              x-kubernetes-list-type: atomic
           required:
           - realm
           type: object

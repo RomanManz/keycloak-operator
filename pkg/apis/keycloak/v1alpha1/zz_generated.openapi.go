@@ -472,10 +472,27 @@ func schema_pkg_apis_keycloak_v1alpha1_KeycloakRealmSpec(ref common.ReferenceCal
 							Ref:         ref("k8s.io/apimachinery/pkg/apis/meta/v1.LabelSelector"),
 						},
 					},
+					"userFederationProvidersSecrets": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "atomic",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "Keycloak Realm REST object. UserFederationProviders secrets",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("./pkg/apis/keycloak/v1alpha1.UserFederationProvidersSecret"),
+									},
+								},
+							},
+						},
+					},
 					"realm": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Keycloak Realm REST object.",
-							Ref:         ref("./pkg/apis/keycloak/v1alpha1.KeycloakAPIRealm"),
+							Ref: ref("./pkg/apis/keycloak/v1alpha1.KeycloakAPIRealm"),
 						},
 					},
 					"realmOverrides": {
@@ -497,11 +514,11 @@ func schema_pkg_apis_keycloak_v1alpha1_KeycloakRealmSpec(ref common.ReferenceCal
 						},
 					},
 				},
-				Required: []string{"realm"},
+				Required: []string{"userFederationProvidersSecrets", "realm"},
 			},
 		},
 		Dependencies: []string{
-			"./pkg/apis/keycloak/v1alpha1.KeycloakAPIRealm", "./pkg/apis/keycloak/v1alpha1.RedirectorIdentityProviderOverride", "k8s.io/apimachinery/pkg/apis/meta/v1.LabelSelector"},
+			"./pkg/apis/keycloak/v1alpha1.KeycloakAPIRealm", "./pkg/apis/keycloak/v1alpha1.RedirectorIdentityProviderOverride", "./pkg/apis/keycloak/v1alpha1.UserFederationProvidersSecret", "k8s.io/apimachinery/pkg/apis/meta/v1.LabelSelector"},
 	}
 }
 

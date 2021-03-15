@@ -28,6 +28,7 @@ type KeycloakRealmSpec struct {
 	// +kubebuilder:validation:Required
 	// UserFederationProviders secrets
 	// +kubebuilder:validation:Optional
+	// +listType=atomic
 	UserFederationProvidersSecrets []*UserFederationProvidersSecret `json:"userFederationProvidersSecrets"`
 	Realm                          *KeycloakAPIRealm                `json:"realm"`
 	// A list of overrides to the default Realm behavior.
@@ -94,7 +95,7 @@ type KeycloakAPIRealm struct {
 	// Point keycloak to an external user provider to validate
 	// credentials or pull in identity information.
 	// +optional
-	UserFederationProviders []KeycloakAPIUserFederationProvider `json:"userFederationProviders,omitempty"`
+	UserFederationProviders []*KeycloakAPIUserFederationProvider `json:"userFederationProviders,omitempty"`
 
 	// User federation mappers are extension points triggered by the
 	// user federation at various points.
