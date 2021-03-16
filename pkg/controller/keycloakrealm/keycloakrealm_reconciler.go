@@ -85,8 +85,9 @@ func (i *KeycloakRealmReconciler) getDesiredRealmState(state *common.RealmState,
 
 	if state.Realm == nil {
 		return &common.CreateRealmAction{
-			Ref: cr,
-			Msg: fmt.Sprintf("create realm %v/%v", cr.Namespace, cr.Spec.Realm.Realm),
+			Ref:      cr,
+			Msg:      fmt.Sprintf("create realm %v/%v", cr.Namespace, cr.Spec.Realm.Realm),
+			Keycloak: i.Keycloak,
 		}
 	}
 

@@ -16,10 +16,25 @@ type KeycloakRealmSpec struct {
 	InstanceSelector *metav1.LabelSelector `json:"instanceSelector,omitempty"`
 	// Keycloak Realm REST object.
 	// +kubebuilder:validation:Required
-	Realm *KeycloakAPIRealm `json:"realm"`
+	// UserFederationProviders secrets
+	// +kubebuilder:validation:Optional
+	// +listType=atomic
+	UserFederationProvidersSecrets []*UserFederationProvidersSecret `json:"userFederationProvidersSecrets"`
+	Realm                          *KeycloakAPIRealm                `json:"realm"`
 	// A list of overrides to the default Realm behavior.
 	// +listType=atomic
 	RealmOverrides []*RedirectorIdentityProviderOverride `json:"realmOverrides,omitempty"`
+}
+
+type UserFederationProvidersSecret struct {
+	// +kubebuilder:validation:Required
+	DisplayName string `json:"displayName"` // of the UserFederationProvider
+	// +kubebuilder:validation:Required
+	SecretName string `json:"secretName"`
+	// +kubebuilder:validation:Required
+	SecretKey string `json:"secretKey"`
+	// +kubebuilder:validation:Required
+	UfpConfigKey string `json:"ufpConfigKey"` // for ex. bindCredential for the ldap federationProvider
 }
 
 type KeycloakAPIRealm struct {
@@ -577,4 +592,8 @@ func init() {
 
 func (i *KeycloakRealm) UpdateStatusSecondaryResources(kind string, resourceName string) {
 	i.Status.SecondaryResources = UpdateStatusSecondaryResources(i.Status.SecondaryResources, kind, resourceName)
+}
+
+func (i *KeycloakRealmSpec) CheckUserFederationProviderSecret(kc Keycloak, sgetter SecretKeyGetter) error {
+	return CheckUserFederationProviderSecret(i, kc, sgetter)
 }
