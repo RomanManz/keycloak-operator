@@ -832,11 +832,17 @@ spec:
                 properties:
                   displayName:
                     type: string
+                  secretKey:
+                    type: string
                   secretName:
+                    type: string
+                  ufpConfigKey:
                     type: string
                 required:
                 - displayName
+                - secretKey
                 - secretName
+                - ufpConfigKey
                 type: object
               type: array
               x-kubernetes-list-type: atomic

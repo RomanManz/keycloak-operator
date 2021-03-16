@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"encoding/json" // REMOVE ME
 	"fmt"
 
 	"github.com/keycloak/keycloak-operator/pkg/apis/keycloak/v1alpha1"
@@ -122,10 +123,15 @@ func (i *ClusterActionRunner) CreateRealm(obj *v1alpha1.KeycloakRealm, kc v1alph
 	if i.keycloakClient == nil {
 		return errors.Errorf("cannot perform realm create when client is nil")
 	}
-	if err := obj.Spec.CheckUserFederationProviderSecret(kc); err != nil {
+	if err := obj.Spec.CheckUserFederationProviderSecret(kc, v1alpha1.GetSecretKey); err != nil {
 		return err
 	} else {
-		log.Info(fmt.Sprintf("====== creating realm\n%v", obj))
+		// REMOVE debug output below
+		if data, err := json.Marshal(obj.Spec); err != nil {
+			log.Error(err, fmt.Sprintf("error marshalling the spec: %v", err.Error()))
+		} else {
+			log.Info(fmt.Sprintf("====== creating realm\n%s", data))
+		}
 		_, err := i.keycloakClient.CreateRealm(obj)
 		return err
 	}
